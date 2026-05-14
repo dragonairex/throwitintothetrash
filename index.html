@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Throw Animation</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: white;
+        }
+        #scene {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        #object {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            transform: rotateZ(28deg);
+        }
+        #trash {
+            position: absolute;
+            width: 200px;
+            height: 170px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .pop {
+            animation: popShake 0.4s ease;
+        }
+        @keyframes popShake {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            30% { transform: translate(-50%, -50%) scale(1.1); }
+            45% { transform: translate(calc(-50% - 5px), -50%) scale(1.05); }
+            60% { transform: translate(calc(-50% + 5px), -50%) scale(1.05); }
+            75% { transform: translate(calc(-50% - 3px), -50%) scale(1.02); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+<div id="scene">
+    <img id="object" src="trash.png"/>
+    <img id="trash" src="trashcan.png.png"/>
+</div>
+<script>
+    const object = document.getElementById("object");
+    const trash = document.getElementById("trash");
+
+    function ease(t) {
+        return t < 0.5
+            ? 4 * t * t * t
+            : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function animate() {
+        const screenHeight = window.innerHeight;
+
+        const startX = 0;
+        const startY = screenHeight / 2 - 75;
+
+        object.style.left = startX + "px";
+        object.style.top = startY + "px";
+
+        setTimeout(() => {
+            const trashRect = trash.getBoundingClientRect();
+
+            const endX = trashRect.left + trashRect.width / 2 - 75;
+            const endY = trashRect.top + trashRect.height / 2 - 75;
+
+            const duration = 600;
+            const startTime = performance.now();
+
+            const controlX = startX + (endX - startX) * 0.4;
+            const controlY = startY - 350;
+
+            function frame(time) {
+                let t = (time - startTime) / duration;
+                if (t > 1) t = 1;
+
+                const et = ease(t);
+
+                const x =
+                    (1 - et) * (1 - et) * startX +
+                    2 * (1 - et) * et * controlX +
+                    et * et * endX;
+
+                const y =
+                    (1 - et) * (1 - et) * startY +
+                    2 * (1 - et) * et * controlY +
+                    et * et * endY;
+
+                object.style.left = x + "px";
+                object.style.top = y + "px";
+
+                if (t*100 < 70) {
+                    requestAnimationFrame(frame);
+                } else {
+                    object.style.display = "none";
+                    trash.classList.add("pop");
+                }
+            }
+
+            requestAnimationFrame(frame);
+        }, 50);
+    }
+
+    window.onload = animate;
+</script>
+</body>
+</html>
